@@ -1,6 +1,8 @@
 # Importing tkinter and sqlite3 modules
 import tkinter as tk
 import sqlite3 as sql
+from tkinter import messagebox 
+
 
 # Creating a database connection and a cursor object
 conn = sql.connect("attendance.db")
@@ -38,7 +40,7 @@ roll_entry.grid(row=1, column=1, padx=10, pady=10)
 def add_student():
     # Getting the name and roll number from the entries
     name = name_entry.get()
-    roll_no = roll_no_entry.get()
+    roll_no = roll_entry.get()
 
     # Checking if the name and roll number are not empty
     if name and roll_no:
@@ -47,13 +49,13 @@ def add_student():
             cur.execute("INSERT INTO students (name, roll_no) VALUES (?, ?)", (name, roll_no))
             conn.commit()
             # Showing a success message
-            tk.messagebox.showinfo("Success", "Student added successfully")
+            messagebox.showinfo("Success", "Student added successfully")
         except sql.IntegrityError:
             # Showing an error message if the roll number already exists
-            tk.messagebox.showerror("Error", "Roll number already exists")
+            messagebox.showerror("Error", "Roll number already exists")
     else:
         # Showing an error message if the name or roll number is empty
-        tk.messagebox.showerror("Error", "Name or roll number cannot be empty")
+        messagebox.showerror("Error", "Name or roll number cannot be empty")
 
 # Creating a button to add a new student
 add_button = tk.Button(add_frame, text="Add Student", command=add_student)
@@ -103,13 +105,13 @@ def mark_attendance(status):
             cur.execute("INSERT INTO attendance (date, roll_no, status) VALUES (?, ?, ?)", (date, roll_no, status))
             conn.commit()
             # Showing a success message
-            tk.messagebox.showinfo("Success", f"Attendance marked as {status} for roll number {roll_no}")
+            messagebox.showinfo("Success", f"Attendance marked as {status} for roll number {roll_no}")
         except sql.IntegrityError:
             # Showing an error message if the attendance record already exists
-            tk.messagebox.showerror("Error", f"Attendance already marked for roll number {roll_no} on {date}")
+            messagebox.showerror("Error", f"Attendance already marked for roll number {roll_no} on {date}")
     else:
         # Showing an error message if the date or selection is empty
-        tk.messagebox.showerror("Error", "Date or student selection cannot be empty")
+        messagebox.showerror("Error", "Date or student selection cannot be empty")
 
 # Creating buttons to mark the attendance as present or absent
 present_button = tk.Button(att_frame, text="Present", command=lambda: mark_attendance("Present"))
@@ -151,10 +153,10 @@ def view_attendance():
                 record_list.insert(tk.END, f"{record[0]} ({record[1]}) - {record[2]}")
         else:
             # Showing a message if no records are found
-            tk.messagebox.showinfo("No Records", f"No attendance records found for {date}")
+            messagebox.showinfo("No Records", f"No attendance records found for {date}")
     else:
         # Showing an error message if the date is empty
-        tk.messagebox.showerror("Error", "Date cannot be empty")
+        messagebox.showerror("Error", "Date cannot be empty")
 
 # Creating a button to view the attendance records
 view_button = tk.Button(view_frame, text="View Attendance", command=view_attendance)

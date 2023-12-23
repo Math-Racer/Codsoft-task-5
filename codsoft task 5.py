@@ -1,6 +1,7 @@
 import tkinter as tk
 import sqlite3 as sql
-from tkinter import messagebox 
+from tkinter import messagebox
+import re
 
 conn = sql.connect("attendance.db")
 cur = conn.cursor()
@@ -12,7 +13,8 @@ cur.execute("CREATE TABLE IF NOT EXISTS attendance (date TEXT, roll_no INTEGER, 
 conn.commit()
 
 root = tk.Tk()
-root.title("University Attendance System")
+root.title("Attendance")
+
 
 add_frame = tk.Frame(root)
 add_frame.pack()
@@ -45,10 +47,13 @@ def add_student():
     else:
 
         messagebox.showerror("Error", "Name or roll number cannot be empty")
+
     populate_list()
 
     name_entry.delete(0, tk.END)
     roll_entry.delete(0, tk.END)
+
+
 
 add_button = tk.Button(add_frame, text="Add Student", command=add_student)
 add_button.grid(row=2, column=0, columnspan=2, padx=10, pady=10)
@@ -61,19 +66,19 @@ date_label.grid(row=0, column=0, padx=10, pady=10)
 date_entry_attput = tk.Entry(att_frame)
 date_entry_attput.grid(row=0, column=1, padx=10, pady=10)
 
-student_list = tk.Listbox(att_frame)
-student_list.grid(row=1, column=0, columnspan=2, padx=10, pady=10)
+studentList = tk.Listbox(att_frame)
+studentList.grid(row=1, column=0, columnspan=2, padx=10, pady=10)
 
 def populate_list():
 
-    student_list.delete(0, tk.END)
+    studentList.delete(0, tk.END)
 
     cur.execute("SELECT name, roll_no FROM students")
 
     students = cur.fetchall()
 
     for student in students:
-        student_list.insert(tk.END, f"{student[0]} ({student[1]})")
+        studentList.insert(tk.END, f"{student[0]} ({student[1]})")
 
 populate_list()
 
@@ -82,16 +87,19 @@ def mark_attendance(status):
 
     date = date_entry_attput.get()
 
-    selection = student_list.curselection()
+    selection = studentList.curselection()
 
     if date and selection:
 
-        roll_no = student_list.get(selection)[1][-2:-1]
+        tempname = (studentList.get(selection))
+        match = re.search(r"\d+",tempname)
+        roll_no = int(match.group())
 
+
+        messagebox.showerror("Error", roll_no)
         try:
             cur.execute("INSERT INTO attendance (date, roll_no, status) VALUES (?, ?, ?)", (date, roll_no, status))
             conn.commit()
-            roll_no = student_list.get(selection)[1][-2:-1]
             messagebox.showinfo("Success", "Attendance marked as {} for roll number {}".format(status,roll_no))
         except sql.IntegrityError:
 
@@ -101,30 +109,7 @@ def mark_attendance(status):
         messagebox.showerror("Error", "Date or student selection cannot be empty")
 
 
-"""
 
-def mark_attendance(status):
-    date = date_entry_attput.get()
-    selection = student_list.curselection()
-
-    if date and selection:
-        selected_item = student_list.get(selection)
-        roll_no_match = re.search(r"\((\d+)\)", selected_item)  
-        if roll_no_match:
-            roll_no = roll_no_match.group(1)
-
-            try:
-                cur.execute("INSERT INTO attendance (date, roll_no, status) VALUES (?, ?, ?)", (date, roll_no, status))
-                conn.commit()
-                messagebox.showinfo("Success", f"Attendance marked as {status} for roll number {roll_no}")
-            except sql.IntegrityError:
-                messagebox.showerror("Error", f"Attendance already marked for roll number {roll_no} on {date}")
-        else:
-            messagebox.showerror("Error", "Invalid student data format")
-    else:
-        messagebox.showerror("Error", f"Date or student selection cannot be empty {selection} {date}")
-
-"""
 
 present_button = tk.Button(att_frame, text="Present", command=lambda: mark_attendance("Present"))
 present_button.grid(row=2, column=0, padx=10, pady=10)
@@ -134,6 +119,7 @@ absent_button.grid(row=2, column=1, padx=10, pady=10)
 
 view_frame = tk.Frame(root)
 view_frame.pack()
+
 
 date_label = tk.Label(view_frame, text="Date:")
 date_label.grid(row=0, column=0, padx=10, pady=10)
